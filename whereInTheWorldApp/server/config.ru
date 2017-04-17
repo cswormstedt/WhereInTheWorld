@@ -9,4 +9,4 @@ require './models/PlaceModel'
 
 map('/') {run ApplicationController}
 map('/home') {run HomeController}
-mao('/place') {run PlaceController}
+map('/place') {run PlaceController}
