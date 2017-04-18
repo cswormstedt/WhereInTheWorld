@@ -34,11 +34,14 @@ class PlaceController < ApplicationController
       # data = JSON.parse(request.body.read)
       # p '--------------------'
       # puts data 
-    
+    @time_stamp= Time.now()
+
     @place = Place.new
     @place.latitude = params["latitude"]
     @place.longitude = params["longitude"]
+    @place.time = @time_stamp.strftime("%I:%M %p %Z")
     @place.user_id = session[:user_id]
+
 
     @place.save
     @place.to_json

@@ -14,13 +14,16 @@ import {
 
 export default class WhereInTheWorldiOS extends Component {
   render() {
+
+    getInitialState: function(){
+    return {loggedIn: true, username: ''
+    
+
     return (
+      
       <View style={styles.container}>
         <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.ios.js
+          Welcome to WhereApp!
         </Text>
         <Text style={styles.instructions}>
           Press Cmd+R to reload,{'\n'}
@@ -30,6 +33,31 @@ export default class WhereInTheWorldiOS extends Component {
     );
   }
 }
+
+
+
+
+/**
+* COMPONENTS
+*
+*
+*/
+//sign up/log in
+
+
+
+
+
+
+
+
+
+
+/**
+*   END
+*COMPONENTS
+*
+*/
 
 const styles = StyleSheet.create({
   container: {
