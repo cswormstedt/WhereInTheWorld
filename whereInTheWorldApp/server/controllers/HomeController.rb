@@ -5,6 +5,7 @@ class HomeController < ApplicationController
 		"user start"
 	end
 
+
 	post '/' do
 
 		username = params[:username]
