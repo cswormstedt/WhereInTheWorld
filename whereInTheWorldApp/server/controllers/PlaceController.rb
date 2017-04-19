@@ -31,14 +31,14 @@ class PlaceController < ApplicationController
     response['Access-Control-Allow-Origin'] = '*'
       content_type :json
 
-      # data = JSON.parse(request.body.read)
-      # p '--------------------'
-      # puts data 
+      data = JSON.parse(request.body.read)
+      p '--------------------'
+      puts data 
     @time_stamp= Time.now()
 
     @place = Place.new
-    @place.latitude = params["latitude"]
-    @place.longitude = params["longitude"]
+    @place.latitude = data["latitude"]
+    @place.longitude = data["longitude"]
     @place.time = @time_stamp.strftime("%I:%M %p %Z")
     @place.user_id = session[:user_id]
 

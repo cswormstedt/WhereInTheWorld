@@ -11,30 +11,35 @@ import React, { Component } from 'react';
 import {
   AppRegistry,
   StyleSheet,
+  NavigatorIOS,
   Platform,
   Switch,
   Text,
   TextInput,
   ScrollView,
   View,
+  PROVIDER_GOOGLE,
+  PROVIDER_DEFAULT,
+  MapView,
   Image,
   TouchableOpacity
 } from 'react-native';
 
-import { PROVIDER_GOOGLE, PROVIDER_DEFAULT, MapView } from 'react-native';
 import axios from 'axios';
 
 
 export default class WhereInTheWorldiOS extends Component {
   constructor(props) {
     super(props);
+    this.checkIn = this.checkIn.bind(this)
     this.state = {
       loggedIn: true,
       username: '',
-      lastPosition: 'unknown', 
+      lastPosition: {},
       placeData: []
       }
   }
+
     watchID: ?number = null;
 
   //get all the places feed
@@ -58,34 +63,36 @@ export default class WhereInTheWorldiOS extends Component {
 
 
         this.watchID = navigator.geolocation.watchPosition((position) => {
-        var lastPosition = {};
-        lastPosition.latitude = position.coords.latitude;
-        lastPosition.longitude = position.coords.longitude;
-        this.setState({lastPosition});
-        console.log(lastPosition, ' this is lastPosition');
-        console.log(lastPosition.latitude)
-        console.log(lastPosition.longitude)
+        state.lastPosition.latitude = position.coords.latitude;
+        state.lastPosition.longitude = position.coords.longitude;
+        this.setState(state);
+        console.log(state)
 
     });
 }
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchID);
   }
+
+
   //post the lat and long
   checkIn() {
+
       var state = this.state;
       var self  = this;
+      
       console.log(this, "this is this")
-      console.log(self.state.lastPosition.latitude, "latttttttttt")
-        axios.post('http://localhost:3000/place', {
-          latitude: this.lastPosition.latitude,
-          longitude: this.state.lastPosition.longitude
+      console.log(this.state, "stateee")
+
+        axios.post('http://localhost:9393/place', {
+          latitude: self.state.lastPosition.latitude ,
+          longitude: self.state.lastPosition.longitude
         })
         .then(function (response) {
           console.log(response, "POST RESPONSE");
         })
         .catch(function (error) {
-          console.log(error);
+          console.log(error,"errrrrrrrr");
         })
     }
 
@@ -94,16 +101,24 @@ export default class WhereInTheWorldiOS extends Component {
     var self = this;
 
     return (
+     
       <View style={styles.container}>
-          <HomeFeed placeData={self.state.placeData} checkIn={self.checkIn} />
+          <Map />
       </View>
     );
   }
 }
 
 /**
+ <NavigatorIOS
+        initialRoute={{
+          component: HomeFeed,
+          title: 'HomeFeed',
+        }}
+        style={{flex: 1}}
+      />
 *HOME COMPONENT
-*
+*<HomeFeed placeData={self.state.placeData} checkIn={self.checkIn} />
 */
 class HomeFeed extends Component {
   constructor(props) {
@@ -112,20 +127,21 @@ class HomeFeed extends Component {
 
 
   render() {
-    console.log(this.props.placeData)
+    console.log(this.state)
     var placeInfo = this.props.placeData.map((place, i) =>{
       return <View key={i}><Text style={styles.placeText}>{place.user_id}: {place.time} {"\n"} {place.latitude} {place.longitude}</Text></View>
     })
     return(
       <View >
-        <View style={styles.places}>
-          {placeInfo}
-        </View>
         <TouchableOpacity onPress={this.props.checkIn} activeOpacity={.5}>
             <View style={styles.button}>
               <Text style={styles.buttonText}>Yo Check In</Text>
             </View>
           </TouchableOpacity>
+        <View style={styles.places}>
+          {placeInfo}
+        </View>
+        
       </View>
       )
   }
@@ -137,7 +153,13 @@ class HomeFeed extends Component {
 *
 */
 class Map extends Component {
+  constructor(props) {
+    super(props);
+  }
+
   render() {
+
+
     return (
       <MapView
         style={styles.map}
@@ -278,7 +300,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#1e90ff',
     paddingVertical: 15,
-    marginVertical: 15,
+    margin: 35,
     alignItems: "center",
     justifyContent: "center"
   },
