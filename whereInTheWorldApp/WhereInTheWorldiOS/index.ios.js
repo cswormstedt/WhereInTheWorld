@@ -32,16 +32,16 @@ export default class WhereInTheWorldiOS extends Component {
   constructor(props) {
     super(props);
     this.checkIn = this.checkIn.bind(this)
-    this.getLocationData = this.getLocationData.bind(this)
+    // this.getLocationData = this.getLocationData.bind(this)
     this.changeView = this.changeView.bind(this)
     this.state = {
       loggedIn: true,
       username: '',
       view: 'home',
       lastPosition: {},
-      placeData: []
+      placeData: [],
+      inc: 0
       }
-
 
   }
   
@@ -49,37 +49,43 @@ export default class WhereInTheWorldiOS extends Component {
 
   //get all the places feed
   componentDidMount() {
-    this.getLocationData()
-  } 
+  //   this.getLocationData()
+  // } 
 
-  getLocationData(){
+  // getLocationData(){
       console.log("this is hitting")
-      var state = this.state;
-      var self  = this;
+        var self  = this;
       axios.get('http://localhost:9393/place')
       .then(function(response){
+         var state = self.state;
+        console.log(state, ' state in cb')
         state.placeData =response.data;
         self.setState(state)
       })
 
-  //     navigator.geolocation.getCurrentPosition(
-  //       (position) => {
-  //         var initialPosition = JSON.stringify(position);
-  //         this.setState({initialPosition});
-  //       },
-  //       (error) => alert(JSON.stringify(error)),
-  //       {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
-  //       );
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          var initialPosition = JSON.stringify(position);
 
-  //       state = self.state
+          // this.setState({initialPosition});
+        },
+        (error) => alert(JSON.stringify(error)),
+        {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
+        );
 
-  //       this.watchID = navigator.geolocation.watchPosition((position) => {
-  //       state.lastPosition.latitude = position.coords.latitude;
-  //       state.lastPosition.longitude = position.coords.longitude;
-  //       this.setState(state);
-  //       console.log(state, "geooo")
+       
+       
 
-  //   });
+        this.watchID = navigator.geolocation.watchPosition((position) => {
+     
+        var state = this.state;
+        console.log(state, ' compo did mount')
+        state.lastPosition.latitude = position.coords.latitude;
+        state.lastPosition.longitude = position.coords.longitude;
+        this.setState(state);
+        // console.log(state, "geooo")
+
+    });
 
   }
   componentWillUnmount() {
@@ -106,27 +112,29 @@ export default class WhereInTheWorldiOS extends Component {
     }
 
 
-    changeView = (component) =>{
+    changeView() {
       
       var state = this.state
+      state.inc = state.inc + 1
       state.view = 'map'
       this.setState(state);
     }
     
     renderView(component) {
+            console.log(component, ' this is componetn')
             var self = this;
-            console.log(this.state)
+            console.log(this.state, ' thi is state in render')
             if(component == 'home') {
-            return <HomeFeed changeView={this.changeView} placeData={self.state.placeData} checkIn={self.checkIn}/>
+            return <HomeFeed changeView={this.changeView} placeData={this.state.placeData} checkIn={self.checkIn}/>
           } else if(component == 'map') {
-            return <Map changeView={this.changeView} placeData={self.state.placeData}/>
+            return <Map  placeData={self.state.placeData}/>
           } 
       }
   
 
   render() {    
     
-
+    console.log(' render home component being called', this.state)
     return (
       <View style={styles.container}>
         {this.renderView(this.state.view)}
@@ -160,8 +168,8 @@ class HomeFeed extends Component {
         </TouchableOpacity>
         <TouchableOpacity onPress={() => this.props.changeView('map') } activeOpacity={.5}>
                 <View style={styles.button}>
-              <Text style={styles.buttonText}>MAP YO</Text>
-            </View>
+                   <Text style={styles.buttonText}>MAP YO</Text>
+                </View>
         </TouchableOpacity>
           <ScrollView
             scrollEventThrottle={200}
@@ -178,15 +186,7 @@ class HomeFeed extends Component {
 
 /**
 *MAP COMPONENT
-*< <TouchableOpacity activeOpacity={.5}>
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>map map map</Text>
-            </View>
-        </TouchableOpacity>
-
-    console.log(nextProps, ' nextProps')
-    
-   
+* 
 */
 class Map extends Component {
   constructor(props) {
@@ -198,6 +198,7 @@ class Map extends Component {
   }
 
   createMarkers() {
+
     this.props.placeData.map((place, i) =>{
       
       if(isNaN(parseInt(place.latitude)) === false ||  isNaN(parseInt(place.longitude)) === false){
@@ -211,13 +212,9 @@ class Map extends Component {
     })
   }
 
-  componentWillReceiveProps(nextProps) {
-    
-
-  }
   render() {
-debugger
     return (
+     
       <MapView
         style={styles.map}
         showsUserLocation={true}
