@@ -7,7 +7,7 @@
  Cmd+D or shake for dev menu
  */
 
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
 import {
   AppRegistry,
   StyleSheet,
@@ -32,18 +32,25 @@ export default class WhereInTheWorldiOS extends Component {
   constructor(props) {
     super(props);
     this.checkIn = this.checkIn.bind(this)
+    this.getLocationData = this.getLocationData.bind(this)
     this.state = {
       loggedIn: true,
       username: '',
+      view: 'home',
       lastPosition: {},
       placeData: []
       }
   }
-
-    watchID: ?number = null;
+  
+  watchID: ?number = null;
 
   //get all the places feed
   componentDidMount() {
+    this.getLocationData()
+  } 
+
+  getLocationData(){
+
       var state = this.state;
       var self  = this;
       axios.get('http://localhost:9393/place')
@@ -66,23 +73,20 @@ export default class WhereInTheWorldiOS extends Component {
         state.lastPosition.latitude = position.coords.latitude;
         state.lastPosition.longitude = position.coords.longitude;
         this.setState(state);
-        console.log(state)
+        console.log(state, "geooo")
 
     });
-}
+
+  }
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchID);
   }
-
 
   //post the lat and long
   checkIn() {
 
       var state = this.state;
       var self  = this;
-      
-      console.log(this, "this is this")
-      console.log(this.state, "stateee")
 
         axios.post('http://localhost:9393/place', {
           latitude: self.state.lastPosition.latitude ,
@@ -90,6 +94,7 @@ export default class WhereInTheWorldiOS extends Component {
         })
         .then(function (response) {
           console.log(response, "POST RESPONSE");
+          self.getLocationData();
         })
         .catch(function (error) {
           console.log(error,"errrrrrrrr");
@@ -97,74 +102,109 @@ export default class WhereInTheWorldiOS extends Component {
     }
 
 
-  render() {
-    var self = this;
-
-    return (
+    changeView() {
+      var state = this.state;
+      state.view = 'map'
+      this.setState(state);
+    }
+    
+  render() {    
      
-      <View style={styles.container}>
-          <Map />
-      </View>
-    );
+      if (this.state.view === 'maps') {
+       return <Map placeData={this.state.placeData} />
+     }
+     else if (this.state.view === 'home') {
+      return <HomeFeed placeData={this.state.placeData} checkIn={this.checkIn} changeView={this.changeView}/>
+     }
+    
   }
+  
 }
 
 /**
- <NavigatorIOS
-        initialRoute={{
-          component: HomeFeed,
-          title: 'HomeFeed',
-        }}
-        style={{flex: 1}}
-      />
 *HOME COMPONENT
-*<HomeFeed placeData={self.state.placeData} checkIn={self.checkIn} />
-*/
+*        
+* 
+*/       
 class HomeFeed extends Component {
   constructor(props) {
     super(props);
   }
 
-
   render() {
-    console.log(this.state)
+    console.log(this.props.placeData, "home")
     var placeInfo = this.props.placeData.map((place, i) =>{
       return <View key={i}><Text style={styles.placeText}>{place.user_id}: {place.time} {"\n"} {place.latitude} {place.longitude}</Text></View>
     })
+
     return(
       <View >
         <TouchableOpacity onPress={this.props.checkIn} activeOpacity={.5}>
             <View style={styles.button}>
               <Text style={styles.buttonText}>Yo Check In</Text>
             </View>
-          </TouchableOpacity>
-        <View style={styles.places}>
-          {placeInfo}
-        </View>
-        
+        </TouchableOpacity>
+        <TouchableOpacity onPress={this.props.changeView('map') } activeOpacity={.5}>
+                <View style={styles.button}>
+              <Text style={styles.buttonText}>MAP YO</Text>
+            </View>
+        </TouchableOpacity>
+          <ScrollView
+            scrollEventThrottle={200}
+            automaticallyAdjustContentInsets={false}
+            bounces={true}>
+            <View style={styles.places}>
+              {placeInfo.reverse()}
+            </View>
+          </ScrollView>  
       </View>
       )
   }
 }
 
-
 /**
 *MAP COMPONENT
-*
+*< <TouchableOpacity activeOpacity={.5}>
+            <View style={styles.button}>
+              <Text style={styles.buttonText}>map map map</Text>
+            </View>
+        </TouchableOpacity>
 */
 class Map extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      markers: []
+    }
   }
+  componentWillReceiveProps(nextProps) {
+      
+    console.log(nextProps, ' nextProps')
+    
+   nextProps.placeData.map((place, i) =>{
+      
+      if(isNaN(parseInt(place.latitude)) === false ||  isNaN(parseInt(place.longitude)) === false){
+            var obj = {};
+            obj.latitude = parseInt(place.latitude)
+            obj.longitude = parseInt(place.longitude)
+            obj.title = place.time
+            this.state.markers.push(obj)
+            console.log(obj);
+      }
+ 
+  })
 
+  }
   render() {
-
 
     return (
       <MapView
         style={styles.map}
         showsUserLocation={true}
-      />
+        annotations={this.state.markers}
+        >
+      
+        </MapView>
     );
   }
 }
@@ -260,8 +300,6 @@ class SignUp extends Component{
 
 
 
-
-
 /**
 *STYLES
 */
@@ -300,7 +338,8 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#1e90ff',
     paddingVertical: 15,
-    margin: 35,
+    paddingHorizontal: 15,
+    marginVertical: 15,
     alignItems: "center",
     justifyContent: "center"
   },

@@ -52,9 +52,11 @@ class PlaceController < ApplicationController
   end
 
   delete '/:id' do
+    id = params[:id]
 
-    place = Place.find_by(user_id)
-    place.destroy
+    @place = Place.find_by(id)
+    Todo.delte(id)
+    "success"
 
   end
 

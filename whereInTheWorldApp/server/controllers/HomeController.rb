@@ -37,7 +37,7 @@ class HomeController < ApplicationController
 		
 		user.save
 
-		"succes"
+		"success"
 	end
 
 
