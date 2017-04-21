@@ -13,8 +13,10 @@ import {
   StyleSheet,
   NavigatorIOS,
   Platform,
+  Button,
   Switch,
   Text,
+  TabBarIOS,
   TextInput,
   ScrollView,
   View,
@@ -32,27 +34,28 @@ export default class WhereInTheWorldiOS extends Component {
   constructor(props) {
     super(props);
     this.checkIn = this.checkIn.bind(this)
-    // this.getLocationData = this.getLocationData.bind(this)
-    this.changeView = this.changeView.bind(this)
+    this.getLocationData = this.getLocationData.bind(this)
+    // this.changeView = this.changeView.bind(this)
     this.state = {
       loggedIn: true,
       username: '',
-      view: 'home',
+      selectedTab: 'home',
       lastPosition: {},
-      placeData: [],
-      inc: 0
+      placeData: []
       }
-
+  }
+  setTab(tabId){
+    this.setState({selectedTab: tabId})
   }
   
   watchID: ?number = null;
 
   //get all the places feed
   componentDidMount() {
-  //   this.getLocationData()
-  // } 
+    this.getLocationData()
+  } 
 
-  // getLocationData(){
+  getLocationData(){
       console.log("this is hitting")
         var self  = this;
       axios.get('http://localhost:9393/place')
@@ -72,9 +75,6 @@ export default class WhereInTheWorldiOS extends Component {
         (error) => alert(JSON.stringify(error)),
         {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000}
         );
-
-       
-       
 
         this.watchID = navigator.geolocation.watchPosition((position) => {
      
@@ -110,44 +110,41 @@ export default class WhereInTheWorldiOS extends Component {
           console.log(error,"errrrrrrrr");
         })
     }
-
-
-    changeView() {
-      
-      var state = this.state
-      state.inc = state.inc + 1
-      state.view = 'map'
-      this.setState(state);
-    }
-    
-    renderView(component) {
-            console.log(component, ' this is componetn')
-            var self = this;
-            console.log(this.state, ' thi is state in render')
-            if(component == 'home') {
-            return <HomeFeed changeView={this.changeView} placeData={this.state.placeData} checkIn={self.checkIn}/>
-          } else if(component == 'map') {
-            return <Map  placeData={self.state.placeData}/>
-          } 
-      }
   
 
   render() {    
     
     console.log(' render home component being called', this.state)
     return (
-      <View style={styles.container}>
-        {this.renderView(this.state.view)}
-      </View>
+      <TabBarIOS>
+        <TabBarIOS.Item
+          systemIcon="most-recent"
+          selected={this.state.selectedTab === 'home'}
+          onPress={() => this.setTab('home')}>
+         <View style={styles.container}>
+            <HomeFeed placeData={this.state.placeData} checkIn={this.checkIn} />
+         </View>
+        </TabBarIOS.Item>
+        <TabBarIOS.Item
+          systemIcon="search"
+          selected={this.state.selectedTab === 'map'}
+          onPress={() => this.setTab('map')}>
+        <View style={styles.container}>
+          <Map placeData={this.state.placeData} />
+        </View>
+       </TabBarIOS.Item>
+      </TabBarIOS>
     );
   }
 }
 
+
 /**
-*HOME COMPONENT
-*        <Map placeData={self.state.placeData} />
-*        <HomeFeed placeData={self.state.placeData} checkIn={self.checkIn} />
+*HOME COMPONENT {this.renderView(this.state.view)}
+*        
+*        
 */
+
 class HomeFeed extends Component {
   constructor(props) {
     super(props);
@@ -161,24 +158,22 @@ class HomeFeed extends Component {
 
     return(
       <View >
+        <View style={styles.header}>
+          <Text style={styles.headerText}>WhereApp</Text>
+        </View>
         <TouchableOpacity onPress={this.props.checkIn} activeOpacity={.5}>
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>Yo Check In</Text>
-            </View>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => this.props.changeView('map') } activeOpacity={.5}>
-                <View style={styles.button}>
-                   <Text style={styles.buttonText}>MAP YO</Text>
-                </View>
-        </TouchableOpacity>
-          <ScrollView
-            scrollEventThrottle={200}
-            automaticallyAdjustContentInsets={false}
-            bounces={true}>
-            <View style={styles.places}>
-              {placeInfo.reverse()}
-            </View>
-          </ScrollView>  
+          <View style={styles.button}>
+            <Text style={styles.buttonText}>Yo Check In</Text>
+          </View>
+        </TouchableOpacity> 
+        <ScrollView
+          scrollEventThrottle={200}
+          automaticallyAdjustContentInsets={false}
+          bounces={true}>
+          <View style={styles.places}>
+            {placeInfo.reverse()}
+          </View>
+        </ScrollView>
       </View>
       )
   }
@@ -214,108 +209,104 @@ class Map extends Component {
 
   render() {
     return (
-     
       <MapView
-        style={styles.map}
-        showsUserLocation={true}
-        annotations={this.state.markers}
-        >
-      
-        </MapView>
+          style={styles.map}
+          showsUserLocation={true}
+          annotations={this.state.markers}
+          >
+      </MapView>
     );
   }
 }
 
-
+//
 /**
 *SIGN IN COMPONENT
 */
-class SignIn extends Component{
-  constructor(props) {
-    super(props);
-    this.state = { usernameValue: '', passwordValue: '' }
-  }
+// class SignIn extends Component{
+//   constructor(props) {
+//     super(props);
+//     this.state = { usernameValue: '', passwordValue: '' }
+//   }
 
-  render(){
-    return(
-      <View style={styles.container}>
-      <View style={styles.container} />
-        <View style={styles.wrapper}>
-          <View style={styles.inputWrap}>
-            <TextInput
-              placeholder="Username"
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.inputWrap}>
-            <TextInput
-              placeholder="Password"
-              secureTextEntry
-              style={styles.input}
-            />
-          </View>
-          <TouchableOpacity activeOpacity={.5}>
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>Sign In</Text>
-            </View>
-          </TouchableOpacity>
-           <TouchableOpacity activeOpacity={.5}>
-            <View>
-              <Text style={styles.registerText}>Create Account</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.container} />
-        </View>
-      );
-  }
-}
+//   render(){
+//     return(
+//       <View style={styles.container}>
+//       <View style={styles.container} />
+//         <View style={styles.wrapper}>
+//           <View style={styles.inputWrap}>
+//             <TextInput
+//               placeholder="Username"
+//               style={styles.input}
+//             />
+//           </View>
+//           <View style={styles.inputWrap}>
+//             <TextInput
+//               placeholder="Password"
+//               secureTextEntry
+//               style={styles.input}
+//             />
+//           </View>
+//           <TouchableOpacity activeOpacity={.5}>
+//             <View style={styles.button}>
+//               <Text style={styles.buttonText}>Sign In</Text>
+//             </View>
+//           </TouchableOpacity>
+//            <TouchableOpacity activeOpacity={.5}>
+//             <View>
+//               <Text style={styles.registerText}>Create Account</Text>
+//             </View>
+//           </TouchableOpacity>
+//         </View>
+//         <View style={styles.container} />
+//         </View>
+//       );
+//   }
+// }
 
-/**
-*SIGN UP COMPONENT
-*/
-class SignUp extends Component{
-  constructor(props) {
-    super(props);
-    this.state = { usernameValue: '', passwordValue: '' }
-  }
+// // *
+// // *SIGN UP COMPONENT
 
-  render(){
-    return(
-      <View style={styles.container}>
-      <View style={styles.container} />
-        <View style={styles.wrapper}>
-          <View style={styles.inputWrap}>
-            <TextInput
-              placeholder="Username"
-              style={styles.input}
-            />
-          </View>
-          <View style={styles.inputWrap}>
-            <TextInput
-              placeholder="Password"
-              secureTextEntry
-              style={styles.input}
-            />
-          </View>
-          <TouchableOpacity activeOpacity={.5}>
-            <View style={styles.button}>
-              <Text style={styles.buttonText}>Sign Up</Text>
-            </View>
-          </TouchableOpacity>
-           <TouchableOpacity activeOpacity={.5}>
-            <View>
-              <Text style={styles.registerText}>Already have an account?</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.container} />
-        </View>
-      );
-  }
-}
+// class SignUp extends Component{
+//   constructor(props) {
+//     super(props);
+//     this.state = { usernameValue: '', passwordValue: '' }
+//   }
 
-
+//   render(){
+//     return(
+//       <View style={styles.container}>
+//       <View style={styles.container} />
+//         <View style={styles.wrapper}>
+//           <View style={styles.inputWrap}>
+//             <TextInput
+//               placeholder="Username"
+//               style={styles.input}
+//             />
+//           </View>
+//           <View style={styles.inputWrap}>
+//             <TextInput
+//               placeholder="Password"
+//               secureTextEntry
+//               style={styles.input}
+//             />
+//           </View>
+//           <TouchableOpacity activeOpacity={.5}>
+//             <View style={styles.button}>
+//               <Text style={styles.buttonText}>Sign Up</Text>
+//             </View>
+//           </TouchableOpacity>
+//            <TouchableOpacity activeOpacity={.5}>
+//             <View>
+//               <Text style={styles.registerText}>Already have an account?</Text>
+//             </View>
+//           </TouchableOpacity>
+//         </View>
+//         <View style={styles.container} />
+//         </View>
+//       );
+//   }
+// }
 
 /**
 *STYLES
@@ -323,9 +314,22 @@ class SignUp extends Component{
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#a9a9a9'
+    // backgroundColor: '#a9a9a9'
   },
  
+ header: {
+    height: 50,
+    backgroundColor: '#1e90ff',
+    paddingTop: 20,
+    alignItems: 'center'
+  },
+
+  headerText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold'
+  },
+  
   background: {
     width: null,
     height: null
@@ -333,6 +337,7 @@ const styles = StyleSheet.create({
 
   map: {
     ...StyleSheet.absoluteFillObject,
+    zIndex: -1
   },
 
   wrapper: {
@@ -354,24 +359,29 @@ const styles = StyleSheet.create({
 
   button: {
     backgroundColor: '#1e90ff',
-    paddingVertical: 15,
-    paddingHorizontal: 15,
-    marginVertical: 15,
-    alignItems: "center",
-    justifyContent: "center"
+    padding: 5,
+    marginTop: 15,
+    marginHorizontal: 120,
+    borderWidth: 10,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderColor: '#1e90ff'
   },
 
   buttonText: {
-    fontSize: 18
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#FFF'
   },
 
   places: {
     paddingVertical: 15,
-    marginVertical: 15,
+    marginVertical: 15
   },
 
   placeText: {
-    color: '#FFF',
+    // color: '#FFF',
     textAlign: "center",
     fontSize: 20
   },
