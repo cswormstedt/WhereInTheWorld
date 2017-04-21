@@ -35,7 +35,6 @@ export default class WhereInTheWorldiOS extends Component {
     super(props);
     this.checkIn = this.checkIn.bind(this)
     this.getLocationData = this.getLocationData.bind(this)
-    // this.changeView = this.changeView.bind(this)
     this.state = {
       loggedIn: true,
       username: '',
@@ -79,7 +78,7 @@ export default class WhereInTheWorldiOS extends Component {
         this.watchID = navigator.geolocation.watchPosition((position) => {
      
         var state = this.state;
-        console.log(state, ' compo did mount')
+        
         state.lastPosition.latitude = position.coords.latitude;
         state.lastPosition.longitude = position.coords.longitude;
         this.setState(state);
@@ -195,7 +194,7 @@ class Map extends Component {
   createMarkers() {
 
     this.props.placeData.map((place, i) =>{
-      
+      console.log(this.props.placeData, "markerrr")
       if(isNaN(parseInt(place.latitude)) === false ||  isNaN(parseInt(place.longitude)) === false){
             var obj = {};
             obj.latitude = parseInt(place.latitude)

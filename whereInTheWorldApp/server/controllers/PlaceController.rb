@@ -30,7 +30,7 @@ class PlaceController < ApplicationController
   post '/' do
     response['Access-Control-Allow-Origin'] = '*'
       content_type :json
-
+      user_id = params[:user_id]
       data = JSON.parse(request.body.read)
       p '--------------------'
       puts data 
